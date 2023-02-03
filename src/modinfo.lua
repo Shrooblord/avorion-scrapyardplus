@@ -4,24 +4,24 @@ meta =
     -- ID of your mod; Make sure this is unique!
     -- Will be used for identifying the mod in dependency lists
     -- Will be changed to workshop ID (ensuring uniqueness) when you upload the mod to the workshop
-    id = "1875903108",
+    id = "ScrapyardPlus",
 
     -- Name of your mod; You may want this to be unique, but it's not absolutely necessary.
     -- This is an additional helper attribute for you to easily identify your mod in the Mods() list
     name = "ScrapyardPlus",
 
     -- Title of your mod that will be displayed to players
-    title = "DNightmare's ScrapyardPlus",
+    title = "ScrapyardPlus",
 
     -- Description of your mod that will be displayed to players
     description = "Extends Scrapyards with lifetime licenses and other goodies.",
 
     -- Insert all authors into this list
-    authors = {"DNightmare"},
+    authors = {"DNightmare", "Shrooblord"},
 
     -- Version of your mod, should be in format 1.0.0 (major.minor.patch) or 1.0 (major.minor)
     -- This will be used to check for unmet dependencies or incompatibilities
-    version = "2.1.1",
+    version = "2.2.0",
 
     -- If your mod requires dependencies, enter them here. The game will check that all dependencies given here are met.
     -- Possible attributes:
@@ -39,7 +39,7 @@ meta =
     --      {id = "OptionalMod", min = "0.2", optional = true}, -- we support OptionalMod optionally, starting at version 0.2
     -- },
     dependencies = {
-        {id = "Avorion", min = "0.23.*", max = "0.28.*"}
+        {id = "Avorion", min = "0.23.*", max = "2.3.*"}
     },
 
     -- Set to true if the mod only has to run on the server. Clients will get notified that the mod is running on the server, but they won't download it to themselves
@@ -53,5 +53,5 @@ meta =
     saveGameAltering = false,
 
     -- Contact info for other users to reach you in case they have questions
-    contact = "https://www.avorion.net/forum/index.php/topic,3850.0.html",
+    contact = "avorion@shrooblord.com",
 }

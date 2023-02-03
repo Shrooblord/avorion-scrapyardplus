@@ -31,6 +31,8 @@ local soloLifetimeStatusBar
 local currentSoloExp = 0
 local allianceLifetimeStatusBar
 local currentAllianceExp = 0
+local currentSoloLevel = 0
+local currentAllianceLevel = 0
 
 -- modded vanilla functions
 function Scrapyard.onShowWindow()
@@ -194,19 +196,21 @@ function Scrapyard.updatePrice(slider)
     end
 end
 function Scrapyard.updateClient(timeStep)
-    local soloLifetime = (currentSoloExp >= modConfig.lifetimeExpRequired)
-    local allianceLifetime = (currentAllianceExp >= modConfig.lifetimeExpRequired)
+    local soloLifetime = (currentSoloLevel >= modConfig.lifetimeLevelRequired)
+    local allianceLifetime
     local hasAlliance = false
     if Player().allianceIndex then
         hasAlliance = true
+        allianceLifetime = (currentAllianceLevel >= modConfig.lifetimeLevelRequired)
     end
 
     if not soloLifetime then
         soloLicenseDuration = soloLicenseDuration - timeStep
     end
-    if not allianceLifetime and hasAlliance then
+    if hasAlliance and not allianceLifetime then
         allianceLicenseDuration = allianceLicenseDuration - timeStep
     end
+
     if visible then
         if soloLifetime then
             currentSoloLicenseDurationLabel.caption = "Never (lifetime license)"%_t
@@ -264,10 +268,12 @@ function Scrapyard.updateClient(timeStep)
         end
     end
 end
+
 function Scrapyard.setLicenseDuration(soloDuration, allianceDuration)
     soloLicenseDuration = soloDuration or 0
     allianceLicenseDuration = allianceDuration or 0
 end
+
 function Scrapyard.getLicensePrice(orderingFaction, minutes, type)
     local basePrice = round(minutes * modConfig.pricePerMinute * Balancing_GetSectorRichnessFactor(Sector():getCoordinates()))
     if type == typeAlliance then
@@ -292,6 +298,7 @@ function Scrapyard.getLicensePrice(orderingFaction, minutes, type)
 
     return basePrice, reputationDiscount, bulkDiscount, totalPrice
 end
+
 function Scrapyard.buyLicense(duration, type)
     local buyer = Player(callingPlayer)
     local player = Player(callingPlayer)
@@ -345,6 +352,7 @@ function Scrapyard.buyLicense(duration, type)
 
     Scrapyard.sendLicenseDuration()
 end
+
 function Scrapyard.sendLicenseDuration()
 
     local player = Player(callingPlayer)
@@ -365,6 +373,7 @@ function Scrapyard.sendLicenseDuration()
 
     invokeClientFunction(player, "setLicenseDuration", soloDuration, allianceDuration)
 end
+
 function Scrapyard.onHullHit(objectIndex, block, shootingCraftIndex, damage, position)
     local object = Entity(objectIndex)
     if object and object.isWreckage then
@@ -373,7 +382,7 @@ function Scrapyard.onHullHit(objectIndex, block, shootingCraftIndex, damage, pos
             local faction = Faction(shooter.factionIndex)
             if not faction.isAIFaction then
                 local pilot
-
+                --print("no AI pilot shooter")
                 if faction.isAlliance then
                     for _, playerIndex in pairs({shooter:getPilotIndices()}) do
                         local player = Player(playerIndex)
@@ -392,12 +401,14 @@ function Scrapyard.onHullHit(objectIndex, block, shootingCraftIndex, damage, pos
                     Scrapyard.unallowedDamaging(shooter, faction, damage)
                 else
                     -- grant experience
+                    --print("grant XP")
                     Scrapyard.allowedDamaging(faction)
                 end
             end
         end
     end
 end
+
 function Scrapyard.updateServer(timeStep)
 
     local station = Entity();
@@ -436,15 +447,17 @@ function Scrapyard.updateServer(timeStep)
     end
 
     -- let's wreak some havoc
-    disasterTimer = disasterTimer + timeStep
-    if disasterTimer >= modConfig.disasterSpawnTime * 60 and modConfig.enableDisasters then
-        Scrapyard.debug("Time is up, checking for a possible disaster")
-        local areWeInTrouble = math.random()
-        -- maybe?!
-        if station and areWeInTrouble <= modConfig.disasterChance then
-            station:addScript('data/scripts/events/scrapyardplus', 'disaster')
+    if modConfig.enableDisasters then 
+        disasterTimer = disasterTimer + timeStep
+        if disasterTimer >= modConfig.disasterSpawnTime * 60 then
+            Scrapyard.debug("Time is up, checking for a possible disaster")
+            local areWeInTrouble = math.random()
+            -- maybe?!
+            if station and areWeInTrouble <= modConfig.disasterChance then
+                station:addScript('data/scripts/events/scrapyardplus', 'disaster')
+            end
+            disasterTimer = 0
         end
-        disasterTimer = 0
     end
 
     if not illegalActions then illegalActions = {} end
@@ -848,11 +861,13 @@ function Scrapyard.notifyFaction(factionIndex, channel,  message, sender)
 end
 
 --- calculateNewExperience
--- Based on the current experience return how much a player/alliance will earn
+-- Based on the current experience return how much a player/alliance will earn;
+-- somewhat exponential growth to simulate increasing difficulty as you near the next level,
+-- and actual exponential growth per level
 function Scrapyard.calculateNewExperience(currentExp)
     local experience = 0
 
-    experience = math.floor((modConfig.lifetimeExpRequired - currentExp) / 200 * modConfig.lifetimeExpFactor) + modConfig.lifetimeExpBaseline
+    experience = math.max(math.floor( (math.floor((modConfig.lifetimeExpRequired - currentExp) / 200 * modConfig.lifetimeExpFactor) + modConfig.lifetimeExpBaseline) ^ config.lifeTimeExpLevelPower ), 1)
 
     return experience
 end
@@ -922,39 +937,46 @@ function Scrapyard.allowedDamaging(faction)
     if actions == nil then
         actions = 0
     end
-
+--print(actions)
     actions = actions + 1
-    if actions >= modConfig.lifetimeExpTicks then
+    if actions >= modConfig.levelExpTicks then
         local reputation = faction:getRelations(scrapyardFaction.index)
         if reputation >= modConfig.lifetimeRepRequired then
-            local experience = Scrapyard.loadExperience(faction.index)
-            local current = experience[scrapyardFaction.index]
+            local expTbl = Scrapyard.loadExperience(faction.index)
+            local currentExp = expTbl[scrapyardFaction.index]
             local newExp
-            if current < modConfig.lifetimeExpRequired then
-                newExp = Scrapyard.calculateNewExperience(current)
+            if currentExp < modConfig.levelExpRequired then
+                newExp = Scrapyard.calculateNewExperience(currentExp)
                 if faction.isAlliance then
-                    newExp =  math.floor(newExp * modConfig.lifetimeAllianceFactor)
+                    newExp =  math.max(math.floor(newExp * modConfig.lifetimeAllianceFactor), 1)
                 end
-                if current + newExp > modConfig.lifetimeExpRequired then
-                    experience[scrapyardFaction.index] = modConfig.lifetimeExpRequired
+                --print("gained " .. newExp .. "experience")
+
+                -- Level up!
+                if currentExp + newExp > modConfig.levelExpRequired then
+                    --expTbl[scrapyardFaction.index] = modConfig.levelExpRequired
+                    expTbl[scrapyardFaction.index] = 0
+
+                    if true then end
+
+
+                    local scrapper
                     if faction.isAlliance then
-                        Alliance(faction.index):sendChatMessage(Entity().title, 0, 'Congratulations! You reached lifetime status with our faction!')
-                        Alliance(faction.index):sendChatMessage(Entity().title, 2, 'Lifetime license activated!')
-                    elseif faction.isPlayer then
-                        Player(faction.index):sendChatMessage(Entity().title, 0, 'Congratulations! You reached lifetime status with our faction!')
-                        Player(faction.index):sendChatMessage(Entity().title, 2, 'Lifetime license activated!')
+                        scrapper = Alliance(faction.index)
+                    else
+                        scrapper = Player(faction.index)
                     end
+                    scrapper:sendChatMessage(Entity().title, 0, 'Congratulations! You reached lifetime status with our faction!')
+                    scrapper:sendChatMessage(Entity().title, 2, 'Lifetime license activated!')
                 else
-                    experience[scrapyardFaction.index] = current + newExp
+                    expTbl[scrapyardFaction.index] = currentExp + newExp
                 end
 
                 -- only setValue if nessecary
-                faction:setValue(MODULE .. FS .. 'experience', serialize(experience))
+                faction:setValue(MODULE .. FS .. 'experience', serialize(expTbl))
             else
                 newExp = 0
             end
-
-            currentExp = experience[scrapyardFaction.index]
         end
 
         actions = 0
@@ -962,8 +984,27 @@ function Scrapyard.allowedDamaging(faction)
     end
     legalActions[faction.index] = actions
 end
+
 function Scrapyard.debug(message)
     if modConfig.enableDebug == true then
         print(MODULE .. FS .. "DEBUG: " .. message)
     end
 end
+
+function Scrapyard.getData(playerIndex)
+    local player = Player(playerIndex)
+    local alliance = player.allianceIndex
+    data = {
+        license = {
+            player = licenses[player] or 0,
+            alliance = licenses[alliance] or 0,
+            lifetime = (experience[Faction().index] >= modConfig.lifetimeExpRequired)
+        },
+        experience = {
+            experience[Faction().index],
+            modConfig.lifetimeExpRequired
+        }
+    }
+    return data
+end
+callable(Scrapyard, "getData")

@@ -2,24 +2,26 @@ local config = {}
 
 -- general
 config.enableDebug = false -- [Default: false] Enable/Disable detailed log output
-config.alliancePriceFactor = 4.5 -- [Default: 4.5] How much alliances have to pay more for a salvaging license
+config.alliancePriceFactor = 4.5 -- [Default: 4.5] How much alliances have to pay more for a salvaging licence
 config.pricePerMinute = 175 -- [Default: 175] Price per one minute of salvaging
 
 -- timers / announcements
-config.advertisementTimer = 120 -- [Default: 120] Time (in seconds) when the scrapyard will spam the system with "get a license now"
-config.expirationTimeNotice = 600 -- [Default: 600] Time (in seconds) at which the first reminder will be send to players/alliances about their license running out
-config.expirationTimeWarning = 300 -- [Default: 300] Time (in seconds) at which the second reminder will be send to players/alliances about their license running out
-config.expirationTimeCritical = 120 -- [Default: 120] Time (in seconds) at which the third reminder will be send to players/alliances about their license running out
-config.expirationTimeFinal = 30 -- [Default: 30] Time (in seconds) at which the FINAL reminder will be send to players/alliances about their license running out
+config.advertisementTimer = 120 -- [Default: 120] Time (in seconds) when the scrapyard will spam the system with "get a licence now"
+config.expirationTimeNotice = 600 -- [Default: 600] Time (in seconds) at which the first reminder will be send to players/alliances about their licence running out
+config.expirationTimeWarning = 300 -- [Default: 300] Time (in seconds) at which the second reminder will be send to players/alliances about their licence running out
+config.expirationTimeCritical = 120 -- [Default: 120] Time (in seconds) at which the third reminder will be send to players/alliances about their licence running out
+config.expirationTimeFinal = 30 -- [Default: 30] Time (in seconds) at which the FINAL reminder will be send to players/alliances about their licence running out
 
--- lifetime
-config.allowLifetime = true -- [Default: true] Enable/Disable the ability to get lifetime salvaging licenses
-config.lifetimeRepRequired = 100000 -- [Default: 100000] Minimum required reputation before you start to gather experience towards lifetime
-config.lifetimeExpTicks = 1000 -- [Default: 1000] Actions (in ticks) after the player/alliance will get experience
-config.lifetimeExpRequired = 100000 -- [Default: 100000] Amount of experience to unlock lifetime-license
+-- discounts / lifetime licence
+config.allowLifetime = true -- [Default: true] Enable/Disable the ability to get lifetime salvaging licences
+config.lifetimeRepRequired = 10000 -- [Default: 10000] Minimum required reputation before you start to gather experience towards levels / lifetime
+config.levelExpTicks = 10 -- [Default: 10] This many ticks are required to gain one experience point towards levels / lifetime
+config.levelExpRequired = 1000 -- [Default: 1000] Amount of experience to unlock levels towards lifetime-licence
+config.lifetimeLevelRequired = 3 -- [Default: 100] Amount of experience to unlock levels towards lifetime-licence
 config.lifetimeExpFactor = 0.75 -- [Default: 0.75] Factor to de-/increase the base experience calculation
 config.lifetimeAllianceFactor = 0.5 -- [Default: 0.5] Factor to de-/increase the amount an alliance will get compared to a player
-config.lifetimeExpBaseline = 7 -- [Default: 7] Base value of experience that's always granted
+config.lifetimeExpBaseline = 7 -- [Default: 7] Base value of experience that's always granted (bare minimum XP is 1 even if this and all factors are 0)
+config.lifeTimeExpLevelPower = 0.8 -- [Default: 0.8] Power factor to de-/increase the amount of experience based on the level of the player/alliance
 
 -- high traffic system
 config.highTrafficChance = 0.3 -- [Default: 0.3] Chance that a discovered system is regenerative
