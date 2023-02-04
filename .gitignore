@@ -1,2 +1,6 @@
 /releases/
 .idea/
+
+# So that we can play the game with this in our %appdata% folder (using symlinks)
+data
+modinfo.lua
