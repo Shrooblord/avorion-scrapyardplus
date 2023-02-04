@@ -22,6 +22,7 @@ config.lifetimeExpFactor = 0.75 -- [Default: 0.75] Factor to de-/increase the ba
 config.lifetimeAllianceFactor = 0.5 -- [Default: 0.5] Factor to de-/increase the amount an alliance will get compared to a player
 config.lifetimeExpBaseline = 7 -- [Default: 7] Base value of experience that's always granted (bare minimum XP is 1 even if this and all factors are 0)
 config.lifeTimeExpLevelPower = 0.8 -- [Default: 0.8] Power factor to de-/increase the amount of experience based on the level of the player/alliance
+config.discountPerLevelPower = 0.98 -- [Default: 0.98] Power factor to de-/increase the discount per level
 
 -- high traffic system
 config.highTrafficChance = 0.3 -- [Default: 0.3] Chance that a discovered system is regenerative

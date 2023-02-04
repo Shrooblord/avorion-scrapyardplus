@@ -192,10 +192,11 @@ function Scrapyard.updatePrice(slider)
                 buyer = Alliance()
             end
 
-            local base, reputation, bulk, total = Scrapyard.getLicensePrice(buyer, slider.value, group.type)
+            local base, reputation, bulk, levelDiscount, total = Scrapyard.getLicensePrice(buyer, slider.value, group.type)
             group.basePricelabel.caption = "$${money}" % _t % { money = createMonetaryString(base) }
             group.reputationDiscountlabel.caption = "$${money}" % _t % { money = createMonetaryString(reputation) }
             group.bulkDiscountlabel.caption = "$${money}" % _t % { money = createMonetaryString(bulk) }
+            group.levelDiscountlabel.caption = "$${money}" % _t % { money = createMonetaryString(levelDiscount) }
             group.totalPricelabel.caption = "$${money}" % _t % { money = createMonetaryString(total) }
 
             group.licenseDurationlabel.caption = "${time}" % _t % { time = createReadableTimeString(group.durationSlider.value * 60) }
@@ -320,15 +321,23 @@ function Scrapyard.setLicenseDuration(soloDuration, allianceDuration)
 end
 
 function Scrapyard.getLicensePrice(orderingFaction, minutes, type)
+    local currentLevel = 0
     local basePrice = round(minutes * modConfig.pricePerMinute * Balancing_GetSectorRichnessFactor(Sector():getCoordinates()))
     if type == typeAlliance then
         basePrice = round(modConfig.alliancePriceFactor * basePrice)
+        currentLevel = currentAllianceLevel
+    else
+        currentLevel = currentSoloLevel
     end
 
     local currentReputation = orderingFaction:getRelations(Faction().index)
     local reputationDiscountFactor = math.floor(currentReputation / 10000 + 1) * 0.01
+    local levelDiscountFactor = math.floor( currentLevel / modConfig.lifetimeLevelRequired )
+
+    local levelDiscount = round(basePrice * levelDiscountFactor ^ modConfig.discountPerLevelPower)
     if type == typeAlliance then
         reputationDiscountFactor = reputationDiscountFactor * 0.85 -- alliance reputation is easier to obtain so less discount
+        levelDiscount = levelDiscount * 0.65 -- alliance level is easier to obtain so less discount
     end
     local reputationDiscount = round(basePrice * reputationDiscountFactor);
 
@@ -339,9 +348,9 @@ function Scrapyard.getLicensePrice(orderingFaction, minutes, type)
     if minutes > 120 then bulkDiscountFactor = 0.09 end
     local bulkDiscount = round(basePrice * bulkDiscountFactor)
 
-    local totalPrice = round(basePrice - reputationDiscount - bulkDiscount)
+    local totalPrice = round(basePrice - reputationDiscount - bulkDiscount - levelDiscount)
 
-    return basePrice, reputationDiscount, bulkDiscount, totalPrice
+    return basePrice, reputationDiscount, bulkDiscount, levelDiscount, totalPrice
 end
 
 function Scrapyard.buyLicense(duration, type)
@@ -367,7 +376,7 @@ function Scrapyard.buyLicense(duration, type)
         if (duration < 300) then duration = 300 end
     end
 
-    local base, reputation, bulk, total = Scrapyard.getLicensePrice(buyer, duration / 60, type) -- minutes!
+    local base, reputation, bulk, levelDiscount, total = Scrapyard.getLicensePrice(buyer, duration / 60, type) -- minutes!
 
     local canPay, msg, args = buyer:canPay(total)
     if not canPay then
@@ -528,7 +537,7 @@ function Scrapyard.updateServer(timeStep)
 
         -- check for lifetime reached
         local level, experience = Scrapyard.loadExperience(factionIndex)
-        local lifetimeReached = (experience[Faction().index] >= modConfig.lifetimeExpRequired)
+        local lifetimeReached = (level[Faction().index] >= modConfig.lifetimeLevelRequired)
 
         if lifetimeReached then
             if time < 3600 then -- lock time at 1 hr as 'lifetime'
@@ -654,6 +663,9 @@ function Scrapyard.createSoloTab()
     licenseTab:createLabel(vec2(15, 185), "Bulk Discount", fontSize)
     local bulkDiscountlabel = licenseTab:createLabel(vec2(size.x - 260, 185), "", fontSize)
 
+    licenseTab:createLabel(vec2(15, 185), "Level Discount", fontSize)
+    local levelDiscountlabel = licenseTab:createLabel(vec2(size.x - 260, 185), "", fontSize)
+
     licenseTab:createLine(vec2(0, 215), vec2(size.x, 215))
 
     licenseTab:createLabel(vec2(15, 220), "Total", fontSize)
@@ -683,6 +695,7 @@ function Scrapyard.createSoloTab()
         basePricelabel,
         reputationDiscountlabel,
         bulkDiscountlabel,
+        levelDiscountlabel,
         totalPricelabel,
         soloLevelStatusBar,
         soloLifetimeStatusBar,
@@ -697,6 +710,7 @@ function Scrapyard.createSoloTab()
         basePricelabel = basePricelabel,
         reputationDiscountlabel = reputationDiscountlabel,
         bulkDiscountlabel = bulkDiscountlabel,
+        levelDiscountlabel = levelDiscountlabel,
         totalPricelabel = totalPricelabel,
         levelStatusBar = soloLevelStatusBar,
         lifetimeStatusBar = soloLifetimeStatusBar,
@@ -706,7 +720,7 @@ end
 
 --- initSoloTab
 -- Initialize the solo-licence tab with default values
-function Scrapyard.initSoloTab(durationSlider, licenseDurationlabel, basePricelabel, reputationDiscountlabel, bulkDiscountlabel, totalPricelabel, levelStatusBar, lifetimeStatusBar, size)
+function Scrapyard.initSoloTab(durationSlider, licenseDurationlabel, basePricelabel, reputationDiscountlabel, bulkDiscountlabel, levelDiscountlabel, totalPricelabel, levelStatusBar, lifetimeStatusBar, size)
     -- Init values & properties
     durationSlider.value = 5
     durationSlider.showValue = false
@@ -715,7 +729,7 @@ function Scrapyard.initSoloTab(durationSlider, licenseDurationlabel, basePricela
     licenseDurationlabel.width = size.x - 140
     licenseDurationlabel.centered = true
 
-    local base, reputation, bulk, total = Scrapyard.getLicensePrice(Player(), durationSlider.value)
+    local base, reputation, bulk, levelDiscount, total = Scrapyard.getLicensePrice(Player(), durationSlider.value)
 
     basePricelabel.setTopRightAligned(basePricelabel)
     basePricelabel.width = 250
@@ -728,6 +742,10 @@ function Scrapyard.initSoloTab(durationSlider, licenseDurationlabel, basePricela
     bulkDiscountlabel.setTopRightAligned(bulkDiscountlabel)
     bulkDiscountlabel.width = 250
     bulkDiscountlabel.caption = "$${money}" % _t % { money = createMonetaryString(bulk) }
+
+    levelDiscountlabel.setTopRightAligned(levelDiscountlabel)
+    levelDiscountlabel.width = 250
+    levelDiscountlabel.caption = "$${money}" % _t % { money = createMonetaryString(levelDiscount) }
 
     totalPricelabel.setTopRightAligned(totalPricelabel)
     totalPricelabel.width = 250
@@ -824,7 +842,7 @@ function Scrapyard.initAllianceTab(durationSlider, licenseDurationlabel, basePri
     licenseDurationlabel.width = size.x - 140
     licenseDurationlabel.centered = true
 
-    local base, reputation, bulk, total = Scrapyard.getLicensePrice(Player(), durationSlider.value, typeAlliance)
+    local base, reputation, bulk, levelDiscount, total = Scrapyard.getLicensePrice(Player(), durationSlider.value, typeAlliance)
 
     basePricelabel.setTopRightAligned(basePricelabel)
     basePricelabel.width = 250
@@ -945,6 +963,9 @@ function Scrapyard.sendCurrentLevelsAndExperience()
     if alliance then
         allianceLevel, allianceExperience = Scrapyard.loadExperience(alliance.index)
     else
+        allianceLevel = {}
+        allianceLevel[Faction().index] = 0
+
         allianceExperience = {}
         allianceExperience[Faction().index] = 0
     end
