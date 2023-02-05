@@ -364,6 +364,24 @@ function Scrapyard.buyLicense(duration, type)
     if not buyer then return end
     local station = Entity()
 
+    -- check if this buyer already has a lifetime licence
+    if modConfig.allowLifetime then
+        local level, experience = Scrapyard.loadExperience(buyer.index)
+        local lifetimeReached
+        local facId = Faction().index
+
+        if facId and level[facId] then
+            print("level: " .. level[facId])
+            lifetimeReached = (level[facId] >= modConfig.lifetimeLevelRequired)
+            print ("lifetimeReached: " .. tostring(lifetimeReached))
+        end
+
+        if lifetimeReached then
+            Scrapyard.notifyFaction(buyer.index, 0, string.format("Your lifetime licence with us allows you to salvage here for free!"), station.title)
+            return
+        end
+    end
+
     local maxDuration = Scrapyard.getMaxLicenseDuration(player)
     local currentDuration = licenses[buyer.index] or 0
 
@@ -380,7 +398,7 @@ function Scrapyard.buyLicense(duration, type)
     local canPay, msg, args = buyer:canPay(total)
     if not canPay then
         Scrapyard.notifyFaction(buyer.index, 1, string.format(msg, unpack(args)), station.title)
-        return;
+        return
     end
 
     buyer:pay(total)
