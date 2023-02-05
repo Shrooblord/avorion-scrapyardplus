@@ -253,7 +253,7 @@ function Scrapyard.updateClient(timeStep)
             -- these could be a ternary operator
             if soloLifetime or currentReputation >= modConfig.lifetimeRepRequired  then
                 description = createMonetaryString(currentSoloExp) .. '/' .. createMonetaryString(modConfig.levelExpRequired)
-                color = ColorRGB(0.25, 1, 0.25)
+                color = ColorRGB(0.25, 0.25, 1)
             else
                 description = createMonetaryString(currentSoloExp) .. '/' .. createMonetaryString(modConfig.levelExpRequired) .. ' [Reputation too low]'
                 color = ColorRGB(0.25, 0.25, 0.25)
@@ -288,7 +288,7 @@ function Scrapyard.updateClient(timeStep)
             -- these could be a ternary operator
             if allianceLifetime or currentReputation >= modConfig.lifetimeRepRequired then
                 description = createMonetaryString(currentAllianceExp) .. '/' .. createMonetaryString(modConfig.levelExpRequired)
-                color = ColorRGB(0.25, 1, 0.25)
+                color = ColorRGB(0.25, 0.25, 1)
             else
                 description = createMonetaryString(currentAllianceExp) .. '/' .. createMonetaryString(modConfig.levelExpRequired) .. ' [Reputation too low]'
                 color = ColorRGB(0.25, 0.25, 0.25)
@@ -537,9 +537,10 @@ function Scrapyard.updateServer(timeStep)
 
         -- check for lifetime reached
         local level, experience = Scrapyard.loadExperience(factionIndex)
-        print ("level: " .. level[factionIndex])
-        print ("required: " .. modConfig.lifetimeLevelRequired)
-        local lifetimeReached = (level[factionIndex] >= modConfig.lifetimeLevelRequired)
+        local lifetimeReached
+        if level[factionIndex] then
+            lifetimeReached = (level[factionIndex] >= modConfig.lifetimeLevelRequired)
+        end
 
         if lifetimeReached then
             if time < 3600 then -- lock time at 1 hr as 'lifetime'
@@ -665,30 +666,32 @@ function Scrapyard.createSoloTab()
     licenseTab:createLabel(vec2(15, 185), "Bulk Discount", fontSize)
     local bulkDiscountlabel = licenseTab:createLabel(vec2(size.x - 260, 185), "", fontSize)
 
-    licenseTab:createLabel(vec2(15, 185), "Level Discount", fontSize)
-    local levelDiscountlabel = licenseTab:createLabel(vec2(size.x - 260, 185), "", fontSize)
+    licenseTab:createLabel(vec2(15, 220), "Level Discount", fontSize)
+    local levelDiscountlabel = licenseTab:createLabel(vec2(size.x - 260, 220), "", fontSize)
 
-    licenseTab:createLine(vec2(0, 215), vec2(size.x, 215))
+    licenseTab:createLine(vec2(0, 260), vec2(size.x, 260))
 
-    licenseTab:createLabel(vec2(15, 220), "Total", fontSize)
-    local totalPricelabel = licenseTab:createLabel(vec2(size.x - 260, 220), "", fontSize)
+    licenseTab:createLabel(vec2(15, 265), "Total", fontSize)
+    local totalPricelabel = licenseTab:createLabel(vec2(size.x - 260, 265), "", fontSize)
 
     -- Buy Now!
-    local buyButton = licenseTab:createButton(Rect(size.x - 210, 275, size.x - 10, 325), "Buy licence" % _t, "onBuyLicenseButtonPressed")
+    local buyButton = licenseTab:createButton(Rect(size.x - 210, 295, size.x - 10, 355), "Buy licence" % _t, "onBuyLicenseButtonPressed")
 
     -- lifetime licence (can be disabled in options)
     if modConfig.allowLifetime then
-        licenseTab:createLabel(vec2(15, size.y - 110), "Progress towards lifetime licence:", fontSize)
-        soloLevelStatusBar = licenseTab:createStatisticsBar(Rect(15, size.y - 80, size.x - 15, size.y - 65), ColorRGB(1, 1, 1))
-        soloLifetimeStatusBar = licenseTab:createStatisticsBar(Rect(15, size.y - 60, size.x - 15, size.y - 45), ColorRGB(1, 1, 1))
+        licenseTab:createLabel(vec2(15, size.y - 130), "Progress towards lifetime licence:", fontSize)
+        soloLevelStatusBar = licenseTab:createStatisticsBar(Rect(15, size.y - 100, size.x - 40, size.y - 85), ColorRGB(1, 1, 1))
+        licenseTab:createLabel(vec2(size.x - 35, size.y - 105), "XP", fontSize)
+        soloLifetimeStatusBar = licenseTab:createStatisticsBar(Rect(15, size.y - 80, size.x - 40, size.y - 65), ColorRGB(1, 1, 1))
+        licenseTab:createLabel(vec2(size.x - 35, size.y - 85), "Lvl", fontSize)
     end
 
     -- licence Status
-    licenseTab:createLine(vec2(0, size.y - 35), vec2(size.x, size.y - 35))
-    licenseTab:createLabel(vec2(15, size.y - 30), "Current licence expires in:", fontSize)
-    currentSoloLicenseDurationLabel = licenseTab:createLabel(vec2(size.x - 360, size.y - 30), "", fontSize)
-    licenseTab:createLabel(vec2(15, size.y - 5), "Maximum allowed duration:", fontSize)
-    maxSoloLicenseDurationLabel = licenseTab:createLabel(vec2(size.x - 360, size.y - 5), "", fontSize)
+    licenseTab:createLine(vec2(0, size.y - 55), vec2(size.x, size.y - 55))
+    licenseTab:createLabel(vec2(15, size.y - 45), "Current licence expires in:", fontSize)
+    currentSoloLicenseDurationLabel = licenseTab:createLabel(vec2(size.x - 360, size.y - 45), "", fontSize)
+    licenseTab:createLabel(vec2(15, size.y - 20), "Maximum allowed duration:", fontSize)
+    maxSoloLicenseDurationLabel = licenseTab:createLabel(vec2(size.x - 360, size.y - 20), "", fontSize)
 
     -- the magic of by-reference to the rescue :-)
     Scrapyard.initSoloTab(
@@ -793,31 +796,36 @@ function Scrapyard.createAllianceTab()
     allianceTab:createLabel(vec2(15, 185), "Bulk Discount", fontSize)
     local bulkDiscountlabel = allianceTab:createLabel(vec2(size.x - 260, 185), "", fontSize)
 
-    allianceTab:createLine(vec2(0, 215), vec2(size.x, 215))
+    allianceTab:createLabel(vec2(15, 220), "Level Discount", fontSize)
+    local levelDiscountlabel = allianceTab:createLabel(vec2(size.x - 260, 220), "", fontSize)
 
-    allianceTab:createLabel(vec2(15, 220), "Total", fontSize)
-    local totalPricelabel = allianceTab:createLabel(vec2(size.x - 260, 220), "", fontSize)
+    allianceTab:createLine(vec2(0, 260), vec2(size.x, 260))
+
+    allianceTab:createLabel(vec2(15, 265), "Total", fontSize)
+    local totalPricelabel = allianceTab:createLabel(vec2(size.x - 260, 265), "", fontSize)
 
     -- Buy Now!
-    local buyButton = allianceTab:createButton(Rect(size.x - 210, 275, size.x - 10, 325), "Buy licence" % _t, "onBuyLicenseButtonPressed")
+    local buyButton = allianceTab:createButton(Rect(size.x - 210, 295, size.x - 10, 355), "Buy licence" % _t, "onBuyLicenseButtonPressed")
 
     -- lifetime licence (can be disabled in options)
     if modConfig.allowLifetime then
-        allianceTab:createLabel(vec2(15, size.y - 110), "Progress towards lifetime licence:", fontSize)
-        allianceLevelStatusBar = allianceTab:createStatisticsBar(Rect(15, size.y - 80, size.x - 15, size.y - 65), ColorRGB(1, 1, 1))
-        allianceLifetimeStatusBar = allianceTab:createStatisticsBar(Rect(15, size.y - 60, size.x - 15, size.y - 45), ColorRGB(1, 1, 1))
+        allianceTab:createLabel(vec2(15, size.y - 130), "Progress towards lifetime licence:", fontSize)
+        allianceLevelStatusBar = allianceTab:createStatisticsBar(Rect(15, size.y - 100, size.x - 40, size.y - 85), ColorRGB(1, 1, 1))
+        allianceTab:createLabel(vec2(size.x - 35, size.y - 105), "XP", fontSize)
+        allianceLifetimeStatusBar = allianceTab:createStatisticsBar(Rect(15, size.y - 80, size.x - 40, size.y - 65), ColorRGB(1, 1, 1))
+        allianceTab:createLabel(vec2(size.x - 35, size.y - 85), "Lvl", fontSize)
     end
 
     -- licence Status
-    allianceTab:createLine(vec2(0, size.y - 35), vec2(size.x, size.y - 35))
+    allianceTab:createLine(vec2(0, size.y - 55), vec2(size.x, size.y - 55))
 
-    allianceTab:createLabel(vec2(15, size.y - 30), "Current licence expires in:", fontSize)
-    currentAllianceLicenseDurationLabel = allianceTab:createLabel(vec2(size.x - 360, size.y - 30), "", fontSize)
+    allianceTab:createLabel(vec2(15, size.y - 45), "Current licence expires in:", fontSize)
+    currentAllianceLicenseDurationLabel = allianceTab:createLabel(vec2(size.x - 360, size.y - 45), "", fontSize)
 
-    allianceTab:createLabel(vec2(15, size.y - 5), "Maximum allowed duration:", fontSize)
-    maxAllianceLicenseDurationLabel = allianceTab:createLabel(vec2(size.x - 360, size.y - 5), "", fontSize)
+    allianceTab:createLabel(vec2(15, size.y - 20), "Maximum allowed duration:", fontSize)
+    maxAllianceLicenseDurationLabel = allianceTab:createLabel(vec2(size.x - 360, size.y - 20), "", fontSize)
 
-    Scrapyard.initAllianceTab(durationSlider, licenseDurationlabel, basePricelabel, reputationDiscountlabel, bulkDiscountlabel, totalPricelabel, allianceLifetimeStatusBar, size)
+    Scrapyard.initAllianceTab(durationSlider, licenseDurationlabel, basePricelabel, reputationDiscountlabel, bulkDiscountlabel, levelDiscountlabel, totalPricelabel, allianceLifetimeStatusBar, size)
 
     -- Save UIGroup
     table.insert(uiGroups, {
@@ -827,6 +835,7 @@ function Scrapyard.createAllianceTab()
         basePricelabel = basePricelabel,
         reputationDiscountlabel = reputationDiscountlabel,
         bulkDiscountlabel = bulkDiscountlabel,
+        levelDiscountlabel = levelDiscountlabel,
         totalPricelabel = totalPricelabel,
         levelStatusBar = allianceLevelStatusBar,
         lifetimeStatusBar = allianceLifetimeStatusBar,
@@ -836,7 +845,7 @@ end
 
 --- initAllianceTab
 -- Initialize the alliance-licence tab with default values
-function Scrapyard.initAllianceTab(durationSlider, licenseDurationlabel, basePricelabel, reputationDiscountlabel, bulkDiscountlabel, totalPricelabel, levelStatusBar, lifetimeStatusBar, size)
+function Scrapyard.initAllianceTab(durationSlider, licenseDurationlabel, basePricelabel, reputationDiscountlabel, bulkDiscountlabel, levelDiscountlabel, totalPricelabel, levelStatusBar, lifetimeStatusBar, size)
     durationSlider.value = 5
     durationSlider.showValue = false
 
@@ -857,6 +866,10 @@ function Scrapyard.initAllianceTab(durationSlider, licenseDurationlabel, basePri
     bulkDiscountlabel.setTopRightAligned(bulkDiscountlabel)
     bulkDiscountlabel.width = 250
     bulkDiscountlabel.caption = "$${money}" % _t % { money = createMonetaryString(bulk) }
+
+    levelDiscountlabel.setTopRightAligned(levelDiscountlabel)
+    levelDiscountlabel.width = 250
+    levelDiscountlabel.caption = "$${money}" % _t % { money = createMonetaryString(levelDiscount) }
 
     totalPricelabel.setTopRightAligned(totalPricelabel)
     totalPricelabel.width = 250
@@ -943,8 +956,8 @@ end
 -- Based on the current experience return how much a player/alliance will earn;
 -- somewhat exponential growth to simulate increasing difficulty as you near the next level,
 -- and actual exponential growth per level
-function Scrapyard.calculateNewExperience(currentExp)
-    return math.max(math.floor( (math.floor((modConfig.lifetimeExpRequired - currentExp) / 200 * modConfig.lifetimeExpFactor) + modConfig.lifetimeExpBaseline) ^ config.lifeTimeExpLevelPower ), 1)
+function Scrapyard.calculateNewExperience(currentLevel)
+    return (modConfig.lifetimeExpBaseline * modConfig.lifetimeExpFactor) ^ ((1 + modConfig.lifeTimeExpLevelPower * currentLevel) * -1)
 end
 
 --- getCurrentLevelsAndExperience
@@ -1048,16 +1061,28 @@ function Scrapyard.allowedDamaging(faction)
         if reputation >= modConfig.lifetimeRepRequired then
             local levelTbl, expTbl = Scrapyard.loadExperience(faction.index)
             local currentLevel = levelTbl[scrapyardFaction.index]
-            if currentLevel < modConfig.lifetimeLevelRequired then
+
+            -- wasn't initialised properly
+            if not currentLevel then
+                levelTbl[scrapyardFaction.index] = 0
+                expTbl[scrapyardFaction.index] = 0
+
+                faction:setValue(MODULE .. FS .. 'level', serialize(levelTbl))
+                faction:setValue(MODULE .. FS .. 'experience', serialize(expTbl))
+
+                goto continue
+            end
+
+            if currentLevel and currentLevel < modConfig.lifetimeLevelRequired then
                 local currentExp = expTbl[scrapyardFaction.index]
-                local newExp = Scrapyard.calculateNewExperience(currentExp)
+                local newExp = Scrapyard.calculateNewExperience(currentLevel)
                 if faction.isAlliance then
                     newExp =  math.max(math.floor(newExp * modConfig.lifetimeAllianceFactor), 1)
                 end
                 --print("gained " .. newExp .. "experience")
 
                 -- Level up!
-                if currentExp + newExp >= modConfig.levelExpRequired then
+                if currentExp and currentExp + newExp >= modConfig.levelExpRequired then
                     expTbl[scrapyardFaction.index] = 0
                     currentLevel = currentLevel + 1
                     levelTbl[scrapyardFaction.index] = currentLevel
@@ -1083,6 +1108,7 @@ function Scrapyard.allowedDamaging(faction)
             end
         end
 
+        ::continue::
         actions = 0
 
     end

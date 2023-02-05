@@ -16,13 +16,13 @@ config.expirationTimeFinal = 30 -- [Default: 30] Time (in seconds) at which the 
 config.allowLifetime = true -- [Default: true] Enable/Disable the ability to get lifetime salvaging licences
 config.lifetimeRepRequired = 10000 -- [Default: 10000] Minimum required reputation before you start to gather experience towards levels / lifetime
 config.levelExpTicks = 10 -- [Default: 10] This many ticks are required to gain one experience point towards levels / lifetime
-config.levelExpRequired = 1000 -- [Default: 1000] Amount of experience to unlock levels towards lifetime-licence
+config.levelExpRequired = 5 -- [Default: 1000] Amount of experience to unlock levels towards lifetime-licence
 config.lifetimeLevelRequired = 3 -- [Default: 100] Amount of experience to unlock levels towards lifetime-licence
-config.lifetimeExpFactor = 0.75 -- [Default: 0.75] Factor to de-/increase the base experience calculation
 config.lifetimeAllianceFactor = 0.5 -- [Default: 0.5] Factor to de-/increase the amount an alliance will get compared to a player
-config.lifetimeExpBaseline = 7 -- [Default: 7] Base value of experience that's always granted (bare minimum XP is 1 even if this and all factors are 0)
-config.lifeTimeExpLevelPower = 0.8 -- [Default: 0.8] Power factor to de-/increase the amount of experience based on the level of the player/alliance
-config.discountPerLevelPower = 0.98 -- [Default: 0.98] Power factor to de-/increase rate at which the discount per level approaches the maximum
+config.lifetimeExpBaseline = 7 -- [Default: 7] Base value of experience per turret per 'xp tick' (see levelExpTicks above) before any other calculations
+config.lifetimeExpFactor = 0.75 -- [Default: 0.75] Factor to de-/increase the base experience calculation
+config.lifeTimeExpLevelPower = 0.8 -- [Default: 0.8] Power factor to de-/increase the amount of experience required per level based on the current level of the player/alliance
+config.discountPerLevelPower = 0.98 -- [Default: 0.98] Power factor to de-/increase the amount of discount per level based on the current level of the player/alliance
 
 -- high traffic system
 config.highTrafficChance = 0.3 -- [Default: 0.3] Chance that a discovered system is regenerative
