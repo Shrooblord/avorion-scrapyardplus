@@ -975,7 +975,7 @@ end
 -- somewhat exponential growth to simulate increasing difficulty as you near the next level,
 -- and actual exponential growth per level
 function Scrapyard.calculateNewExperience(currentLevel)
-    return math.floor((modConfig.lifetimeExpBaseline * modConfig.lifetimeExpFactor) ^ ((1 + modConfig.lifeTimeExpLevelPower * currentLevel) * -1) * 100)
+    return round(modConfig.lifetimeExpFactor * (modConfig.lifetimeExpBaseline ^ (( modConfig.lifeTimeExpLevelPower * currentLevel)*-1)), 3)
 end
 
 --- getCurrentLevelsAndExperience
