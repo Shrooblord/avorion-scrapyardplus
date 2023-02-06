@@ -514,6 +514,10 @@ end
 
 function Scrapyard.updateServer(timeStep)
 
+    -- TODO: refactor this to be based off of the current vanilla scrapyard.lua's updateServer function because it has changed a little since this implementation
+    --          and we are essentially reverting Scrapyards to their old behaviour by using this function...
+    --       An even better refactor would be to make it more modular somehow, such that we're not overriding vanilla at all but somehow hooking into it better.
+
     local station = Entity();
 
     if highTrafficSystem == nil then
@@ -1209,26 +1213,36 @@ function Scrapyard.debug(message)
     end
 end
 
-function Scrapyard.getData(playerIndex)
-    local player = Player(playerIndex)
-    if not player then return end
-    local alliance = player.allianceIndex
-    local facId = Faction().index
-    data = {
-        license = {
-            player = licenses[player] or 0,
-            alliance = licenses[alliance] or 0,
-            lifetime = (level[facId] >= modConfig.lifetimeLevelRequired)
-        },
-        level = {
-            level[facId],
-            modConfig.lifetimeLevelRequired
-        },
-        experience = {
-            experience[facId],
-            modConfig.levelExpRequired
-        }
-    }
+function Scrapyard.getData()
+    local data = {}
+    
+    for factionIndex, time in pairs(licenses) do
+        local faction = Faction(factionIndex)
+        if not faction then goto skip end
+        if faction.isAlliance then
+            faction = Alliance(factionIndex)
+        elseif faction.isPlayer then
+            faction = Player(factionIndex)
+        end
+
+        table.insert(data, {
+            factionIndex = factionIndex,
+            isAlliance = faction.isAlliance,
+            license = licenses[factionIndex] or 0,
+            --lifetime = (level[Faction().index] >= modConfig.lifetimeLevelRequired), -- ??? Faction().index is of the Scrapyard itself. I don't get how this works elsewhere in the file. wtf!
+            level = {
+                level[factionIndex],
+                modConfig.lifetimeLevelRequired
+            },
+            experience = {
+                experience[factionIndex],
+                modConfig.levelExpRequired
+            }
+        })
+
+        ::skip::
+    end
+
     return data
 end
 callable(Scrapyard, "getData")
