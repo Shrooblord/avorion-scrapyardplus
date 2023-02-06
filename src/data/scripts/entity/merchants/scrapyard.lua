@@ -332,7 +332,7 @@ function Scrapyard.getLicensePrice(orderingFaction, minutes, type)
 
     local currentReputation = orderingFaction:getRelations(Faction().index)
     local reputationDiscountFactor = math.floor(currentReputation / 10000 + 1) * 0.01
-    local levelDiscount = round(basePrice * (currentLevel / modConfig.lifetimeLevelRequired) ^ modConfig.discountPerLevelPower * 0.25)
+    local levelDiscount = round(basePrice * ((currentLevel+1) / modConfig.lifetimeLevelRequired) ^ modConfig.discountPerLevelPower * 0.25) -- level +1 since at max level we unlock lifetime licence so you'd never hit 25% otherwise
 
     if type == typeAlliance then
         reputationDiscountFactor = reputationDiscountFactor * 0.85 -- alliance reputation is easier to obtain so less discount
@@ -423,6 +423,37 @@ function Scrapyard.buyLicense(duration, type)
 
     Scrapyard.sendLicenseDuration()
 end
+callable(Scrapyard, "buyLicense")
+
+function Scrapyard.maxExp(playerInd)
+    local scrapyardFaction = Faction()
+    local player = Player(playerInd)
+    if not scrapyardFaction then return end
+    if not player then return end
+
+    local levelTbl, expTbl = Scrapyard.loadExperience(playerInd)
+    if expTbl[scrapyardFaction.index] then
+        expTbl[scrapyardFaction.index] = modConfig.levelExpRequired - 1
+    end
+
+    player:setValue(MODULE .. FS .. 'experience', serialize(expTbl))
+end
+callable(Scrapyard, "maxExp")
+
+function Scrapyard.giveFiveLevels(playerInd)
+    local scrapyardFaction = Faction()
+    local player = Player(playerInd)
+    if not scrapyardFaction then return end
+    if not player then return end
+
+    local levelTbl, expTbl = Scrapyard.loadExperience(playerInd)
+    if levelTbl[scrapyardFaction.index] then
+        levelTbl[scrapyardFaction.index] = levelTbl[scrapyardFaction.index] + 5
+    end
+
+    player:setValue(MODULE .. FS .. 'level', serialize(levelTbl))
+end
+callable(Scrapyard, "giveFiveLevels")
 
 function Scrapyard.sendLicenseDuration()
 
@@ -695,6 +726,15 @@ function Scrapyard.createSoloTab()
     -- Buy Now!
     local buyButton = licenseTab:createButton(Rect(size.x - 210, 295, size.x - 10, 355), "Buy licence" % _t, "onBuyLicenseButtonPressed")
 
+    --DEBUG
+    local debugLevelUpButton
+    if true then
+        local debugLevelUpButtonLabel = "Set XP to " % _t
+        debugLevelUpButton = licenseTab:createButton(Rect(size.x - 210, 360, size.x - 10, 390), debugLevelUpButtonLabel .. modConfig.levelExpRequired-1, "onDebugLevelUpButtonPressed")
+
+        debugGiveFiveLevelsButton = licenseTab:createButton(Rect(size.x - 210, 395, size.x - 10, 425), "Give 5 levels" % _t, "onDebugGiveFiveLevelsButtonPressed")
+    end
+
     -- lifetime licence (can be disabled in options)
     if modConfig.allowLifetime then
         licenseTab:createLabel(vec2(15, size.y - 130), "Progress towards lifetime licence:", fontSize)
@@ -737,7 +777,9 @@ function Scrapyard.createSoloTab()
         totalPricelabel = totalPricelabel,
         levelStatusBar = soloLevelStatusBar,
         lifetimeStatusBar = soloLifetimeStatusBar,
-        buyButton = buyButton
+        buyButton = buyButton,
+        debugLevelUpButton = debugLevelUpButton,
+        debugGiveFiveLevelsButton = debugGiveFiveLevelsButton,
     })
 end
 
@@ -917,6 +959,34 @@ function Scrapyard.onBuyLicenseButtonPressed(button)
             local player = Player()
             local alliance = player.allianceIndex
             invokeServerFunction("buyLicense", 60 * group.durationSlider.value, group.type)
+        end
+    end
+end
+
+--- onDebugLevelUpButtonPressed
+-- Set a player's XP to 1 less than the required amount for the next level
+function Scrapyard.onDebugLevelUpButtonPressed(button)
+    for _, group in pairs(uiGroups) do
+        -- find which button got pressed
+        if group.debugLevelUpButton.index == button.index then
+            local player = Player()
+            if not player then return end
+
+            invokeServerFunction("maxExp", player.index)
+        end
+    end
+end
+
+--- onDebugGiveFiveLevelsButtonPressed
+-- Gives the player 5 levels instantly
+function Scrapyard.onDebugGiveFiveLevelsButtonPressed(button)
+    for _, group in pairs(uiGroups) do
+        -- find which button got pressed
+        if group.debugGiveFiveLevelsButton.index == button.index then
+            local player = Player()
+            if not player then return end
+
+            invokeServerFunction("giveFiveLevels", player.index)
         end
     end
 end
