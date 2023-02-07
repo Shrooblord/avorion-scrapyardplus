@@ -1245,7 +1245,7 @@ function Scrapyard.getData(scrapyardFactionIndex)
             factionIndex = factionIndex,
             isAlliance = faction.isAlliance,
             license = licenses[factionIndex] or 0,
-            lifetime = (level[scrapyardFactionIndex] >= modConfig.lifetimeLevelRequired),
+            lifetime = ((level[scrapyardFactionIndex] or 0) >= modConfig.lifetimeLevelRequired),
             level = {
                 level[scrapyardFactionIndex],
                 modConfig.lifetimeLevelRequired
