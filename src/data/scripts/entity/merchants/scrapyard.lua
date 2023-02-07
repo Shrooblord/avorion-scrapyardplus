@@ -8,7 +8,7 @@ local MoveUI
 
 -- TODO: replace with the Workshop ID of MoveUI once you upload it
 if ModManager():find("MoveUI_2023") then
-	MoveUI = include("moveui")
+	MoveUI = true
 end
 
 -- constants
