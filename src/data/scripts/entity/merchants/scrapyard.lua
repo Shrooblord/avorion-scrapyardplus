@@ -699,7 +699,7 @@ function Scrapyard.updateServer(timeStep)
 
     -- update licences in MoveUI
     if MoveUI then
-        Scrapyard.updateMoveUILicenses(timeStep)
+        Scrapyard.updateMoveUILicenses(timeStep, Faction().index)
     end
 end
 
@@ -1224,26 +1224,34 @@ function Scrapyard.debug(message)
     end
 end
 
-function Scrapyard.getData()
+function Scrapyard.getData(scrapyardFactionIndex)
+    if not scrapyardFactionIndex then return end
+    Scrapyard.debug("scrapyardFactionIndex: " .. scrapyardFactionIndex)
+
     local data = {}
     
     for factionIndex, time in pairs(licenses) do
+        Scrapyard.debug("licences: " .. serialize(licenses))
+        Scrapyard.debug("factionIndex: " .. factionIndex)
+
         local faction = Faction(factionIndex)
         if not faction then goto skip end
 
         local level, experience = Scrapyard.loadExperience(factionIndex)
+        Scrapyard.debug("level: " .. serialize(level))
+        Scrapyard.debug("experience: " .. serialize(experience))
 
         table.insert(data, {
             factionIndex = factionIndex,
             isAlliance = faction.isAlliance,
             license = licenses[factionIndex] or 0,
-            lifetime = (level[factionIndex] >= modConfig.lifetimeLevelRequired),
+            lifetime = (level[scrapyardFactionIndex] >= modConfig.lifetimeLevelRequired),
             level = {
-                level[factionIndex],
+                level[scrapyardFactionIndex],
                 modConfig.lifetimeLevelRequired
             },
             experience = {
-                experience[factionIndex],
+                experience[scrapyardFactionIndex],
                 modConfig.levelExpRequired
             }
         })
