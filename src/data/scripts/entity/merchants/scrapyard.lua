@@ -1226,20 +1226,20 @@ end
 
 function Scrapyard.getData(scrapyardFactionIndex)
     if not scrapyardFactionIndex then return end
-    Scrapyard.debug("scrapyardFactionIndex: " .. scrapyardFactionIndex)
+    --Scrapyard.debug("getData() scrapyardFactionIndex: " .. scrapyardFactionIndex)
 
     local data = {}
     
     for factionIndex, time in pairs(licenses) do
-        Scrapyard.debug("licences: " .. serialize(licenses))
-        Scrapyard.debug("factionIndex: " .. factionIndex)
+        --Scrapyard.debug("licences: " .. serialize(licenses))
+        --Scrapyard.debug("factionIndex: " .. factionIndex)
 
         local faction = Faction(factionIndex)
         if not faction then goto skip end
 
         local level, experience = Scrapyard.loadExperience(factionIndex)
-        Scrapyard.debug("level: " .. serialize(level))
-        Scrapyard.debug("experience: " .. serialize(experience))
+        --Scrapyard.debug("level: " .. serialize(level))
+        --Scrapyard.debug("experience: " .. serialize(experience))
 
         table.insert(data, {
             factionIndex = factionIndex,
@@ -1262,3 +1262,23 @@ function Scrapyard.getData(scrapyardFactionIndex)
     return data
 end
 callable(Scrapyard, "getData")
+
+function Scrapyard.getLicenses(scrapyardFactionIndex)
+    if not scrapyardFactionIndex then return end
+    --Scrapyard.debug("getLicenses() scrapyardFactionIndex: " .. scrapyardFactionIndex)
+
+    local data = {}
+    
+    for factionIndex, time in pairs(licenses) do
+        --Scrapyard.debug("getLicenses() licences: " .. serialize(licenses))
+        --Scrapyard.debug("getLicenses() factionIndex: " .. factionIndex)
+
+        table.insert(data, {
+            factionIndex = factionIndex,
+            license = licenses[factionIndex] or 0,
+        })
+    end
+
+    return data
+end
+callable(Scrapyard, "getLicenses")
