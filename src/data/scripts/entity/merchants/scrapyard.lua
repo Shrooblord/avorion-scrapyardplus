@@ -699,7 +699,7 @@ function Scrapyard.updateServer(timeStep)
 
     -- update licences in MoveUI
     if MoveUI then
-        Scrapyard.updateMoveUILicenses()
+        Scrapyard.updateMoveUILicenses(timeStep)
     end
 end
 
