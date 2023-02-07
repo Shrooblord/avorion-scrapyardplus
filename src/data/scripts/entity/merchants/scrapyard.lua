@@ -4,6 +4,13 @@ include ("serialize")
 local modConfig = include('data/config/scrapyardplus')
 
 
+local MoveUI
+
+-- TODO: replace with the Workshop ID of MoveUI once you upload it
+if ModManager():find("MoveUI_2023") then
+	MoveUI = include("moveui")
+end
+
 -- constants
 local MODULE = 'ScrapyardPlus' -- our module name
 local FS = '::' -- field separator
@@ -690,6 +697,10 @@ function Scrapyard.updateServer(timeStep)
         end
     end
 
+    -- update licences in MoveUI
+    if MoveUI then
+        Scrapyard.updateMoveUILicenses()
+    end
 end
 
 -- ScrapyardPlus new functions
