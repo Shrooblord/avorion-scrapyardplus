@@ -743,7 +743,7 @@ function Scrapyard.createSoloTab()
 
     --DEBUG
     local debugLevelUpButton
-    if true then
+    if modConfig.enableDebug then
         local debugLevelUpButtonLabel = "Set XP to " % _t
         debugLevelUpButton = licenseTab:createButton(Rect(size.x - 210, 360, size.x - 10, 390), debugLevelUpButtonLabel .. modConfig.levelExpRequired-1, "onDebugLevelUpButtonPressed")
 
