@@ -1219,17 +1219,14 @@ function Scrapyard.getData()
     for factionIndex, time in pairs(licenses) do
         local faction = Faction(factionIndex)
         if not faction then goto skip end
-        if faction.isAlliance then
-            faction = Alliance(factionIndex)
-        elseif faction.isPlayer then
-            faction = Player(factionIndex)
-        end
+
+        local level, experience = Scrapyard.loadExperience(factionIndex)
 
         table.insert(data, {
             factionIndex = factionIndex,
             isAlliance = faction.isAlliance,
             license = licenses[factionIndex] or 0,
-            --lifetime = (level[Faction().index] >= modConfig.lifetimeLevelRequired), -- ??? Faction().index is of the Scrapyard itself. I don't get how this works elsewhere in the file. wtf!
+            lifetime = (level[factionIndex] >= modConfig.lifetimeLevelRequired),
             level = {
                 level[factionIndex],
                 modConfig.lifetimeLevelRequired
