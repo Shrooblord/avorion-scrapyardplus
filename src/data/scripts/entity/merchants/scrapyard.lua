@@ -900,7 +900,7 @@ function Scrapyard.createAllianceTab()
     allianceTab:createLabel(vec2(15, size.y - 20), "Maximum allowed duration:", fontSize)
     maxAllianceLicenseDurationLabel = allianceTab:createLabel(vec2(size.x - 360, size.y - 20), "", fontSize)
 
-    Scrapyard.initAllianceTab(durationSlider, licenseDurationlabel, basePricelabel, reputationDiscountlabel, bulkDiscountlabel, levelDiscountlabel, totalPricelabel, allianceLifetimeStatusBar, size)
+    Scrapyard.initAllianceTab(durationSlider, licenseDurationlabel, basePricelabel, reputationDiscountlabel, bulkDiscountlabel, levelDiscountlabel, totalPricelabel, allianceLevelStatusBar, allianceLifetimeStatusBar, size)
 
     -- Save UIGroup
     table.insert(uiGroups, {
